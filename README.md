@@ -1,5 +1,5 @@
 # LLM-Robotics
-Using LLM to guide the movement of a surgical arm (stick)
+Using LLM to guide the movement of  da Vinci Research Kit (dVRK) endowrist
 
 ## PickAndPlaceProject
 This is the file containing the Unity project and code script

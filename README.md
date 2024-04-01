@@ -5,7 +5,7 @@ The significance of this project lies in the possible later extension of this pr
 This is the file containing the Unity project and code script
 - Asset is the project asset, Script folder inside it containing codes
 
-## Code
+## Codes
 - GeminiTestRequest.cs, GeminiTextResponse.cs AIHttpClients.cs are Gemini Driving code
 - BarMover.cs the main project code
 - BarController.cs, Utilities.cs code for moving objects and LLM prompt

@@ -14,7 +14,8 @@ This is the file containing the Unity project and code script
 - Create a Google Cloud account
 - Go to Asset/Scripts/AIHttpClients.cs/MyRegion
 - Change the PROJECT_ID to your project ID
-- Modify MODEL_ID and QUERY based on your needs (please look at AIHttpClients.cs)
+- Modify MODEL_ID and QUERY based on your needs
+- please look at Asset/Script/AIHttpClients.cs on how to modify
 
 # Acknowledgements And Modifications
 - The setup of this project is based on Unity Robotics Hub -> Pick and Place Tutorial. The link is here:

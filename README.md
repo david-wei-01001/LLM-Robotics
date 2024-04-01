@@ -11,7 +11,7 @@ This is the file containing the Unity project and code script
 - BarController.cs, Utilities.cs code for moving objects and LLM prompt
 
 # Setup Requirements
-- Create a Google Cloud account
+- Create a Google Cloud account at https://cloud.google.com/vertex-ai?hl=en 
 - Go to Asset/Scripts/AIHttpClients.cs/MyRegion
 - Change the PROJECT_ID to your project ID
 - Modify MODEL_ID and QUERY based on your needs

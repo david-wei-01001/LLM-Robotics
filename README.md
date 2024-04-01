@@ -1,6 +1,6 @@
 # LLM-Robotics
-Using LLM (Google Gemini 1.0 pro vision) to guide the movement of  da Vinci Research Kit (dVRK) endowrist (represented as a bar/stick)
-
+Using LLM (Google Gemini 1.0 pro vision) to guide the movement of da Vinci Research Kit (dVRK) endowrist (represented as a bar/stick)
+The significance of this project lies in the possible later extension of this projoect by using VR/AR to virtualize the da Vinci Research Kit (dVRK) endowrist as our bar, so that although dVRK endowrist is in execution in reality, we can still simply execute this program to manipulate it.
 ## LLMRoboticsProject
 This is the file containing the Unity project and code script
 - Asset is the project asset, Script folder inside it containing codes

@@ -26,7 +26,7 @@ This is the file containing the Unity project and code script
     https://github.com/jackcodewu/GeminiAI.Net
 
 - Changes:
-    1. The repo will connect to Google Gemini, but Gemini is not available in many countries, and people have to connect with Google Vertex AI. We rewrite the network connection part to auto-generate credentials and connect to Google Vertex AI
-    2. The repo only allows passing in one part, a text-based prompt. We have rewritten the input logic so it can take as many parts as wanted and also able to take in images as input
+    1. The original repo will connect to Google Gemini, but Gemini is not available in many countries, and people have to connect with Google Vertex AI. This project rewrites the network connection part to auto-generate credentials and connect to Google Vertex AI
+    2. The original repo only allows passing in one part, a text-based prompt. This project has rewritten the input logic so it can take as many parts as wanted and also able to take in images as input
     3. Please look at Asset/Script/GeminiTestRequest.cs for details of how to pass in other forms of data (eg. files on the cloud, videos, functions, etc.)
     4. Provide all necessary Plugins to complete the connection (see Asset/Plugins folder)

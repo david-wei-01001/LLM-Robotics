@@ -9,6 +9,18 @@ namespace Gemini
 
     public class GeminiTextRequest: AIHttpClient
     {
+        /** 
+        <summary>
+        Send query to Google Cloud Vertex AI via network and save the reply.
+        </summary>
+        <param name="strings"> 
+        The first string must always be the text prompt.
+        All subsequent strings are string representations of any type of data where currently are .png images.
+        If you want to change image type, change "image/png" in InlineData.mimeType to the appropriate type.
+        If you want to send video's, files stored on Google CLoud, or any other kind of data, please write your own data type as a property of Part according to the documentation:
+        "https://cloud.google.com/dotnet/docs/reference/Google.Cloud.AIPlatform.V1/latest/Google.Cloud.AIPlatform.V1.Part"
+        </param>
+        */
         public async Task<GeminiTextResponse> SendMsg(params string[] strings)
         {
             FullRequest fullRequest = new FullRequest();
@@ -39,6 +51,8 @@ namespace Gemini
             Part[] partsArray = partsList.ToArray();
             content.parts = partsArray;
             fullRequest.contents = content;
+
+            // Change the LLM parameters by uncomment below
 
             // GenerationConfig gc = new GenerationConfig();
             // gc.temperature = 0.1f;

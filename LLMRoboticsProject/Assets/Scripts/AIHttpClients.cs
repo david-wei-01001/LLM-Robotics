@@ -9,11 +9,11 @@ using System.Net.Http.Headers;
 namespace Gemini
 {
 
-    public class AIHttpClient 
+    public class AIHttpClient
     {
         #region MyRegion
         protected static HttpClient httpClient;
-        protected static string PROJECT_ID = "enduring-grid-414902"; 
+        protected static string PROJECT_ID = "enduring-grid-414902";
         protected static string MODEL_ID = "gemini-1.0-pro-vision";
         protected static string QUERY = "generateContent";
         #endregion
@@ -23,6 +23,11 @@ namespace Gemini
             httpClient = new HttpClient();
         }
 
+        /** 
+        <summary>
+        generate credential tokens to connect to Google Cloud Vertex AI
+        </summary>
+        */
         private async Task<string> GetAccessTokenAsync()
         {
             GoogleCredential credential = await GoogleCredential.GetApplicationDefaultAsync();
@@ -34,6 +39,13 @@ namespace Gemini
             return token;
         }
 
+        /** 
+        <summary>
+        Send query to Google Cloud Vertex AI via network and save the reply
+        </summary>
+        <param name="data"> The data to send. </param>
+        <param name="url"> The url of the specific LLM model to communicate with. </param>
+        */
         public async Task<ResponseData> PostAsync<RequestData, ResponseData>(RequestData data, string url) where RequestData : class, new() where ResponseData : class, new()
         {
             try
@@ -64,90 +76,12 @@ namespace Gemini
                 return SetResponse<ResponseData>(null, false, ex.Message);
             }
         }
-
-        public async Task<ResponseData> PostAsync<ResponseData>(string url, string data) where ResponseData : class, new()
-        {
-            try
-            {
-                StringContent content = new StringContent(data, Encoding.UTF8, "application/json");
-
-                HttpResponseMessage response = await httpClient.PostAsync(url, content);
-                response.EnsureSuccessStatusCode();
-                string responseBody = string.Empty;
-
-
-                responseBody = await response.Content.ReadAsStringAsync();
-                if (!string.IsNullOrWhiteSpace(responseBody))
-                {
-                    ResponseData responseData = JsonConvert.DeserializeObject<ResponseData>(responseBody);
-
-
-                    return SetResponse(responseData ?? null, true, "");
-                }
-
-                return SetResponse<ResponseData>(null, false, "网络请求失败！");
-
-            }
-            catch (Exception ex)
-            {
-                return SetResponse<ResponseData>(null, false, ex.Message);
-            }
-        }
-
-        public async Task<ResponseData> GetAsync<ResponseData>(string url) where ResponseData : class, new()
-        {
-            try
-            {
-
-                HttpResponseMessage response = await httpClient.GetAsync(url);
-                response.EnsureSuccessStatusCode();
-                string responseBody = string.Empty;
-
-                responseBody = await response.Content.ReadAsStringAsync();
-                if (!string.IsNullOrWhiteSpace(responseBody))
-                {
-                    ResponseData responseData = JsonConvert.DeserializeObject<ResponseData>(responseBody);
-
-                    return SetResponse(responseData ?? null, true, "");
-                }
-
-                return SetResponse<ResponseData>(null, false, "网络请求失败！");
-
-            }
-            catch (Exception ex)
-            {
-                return SetResponse<ResponseData>(null, false, ex.Message);
-            }
-
-        }
-
-        public async Task<ResponseData> DeleteAsync<ResponseData>(string url) where ResponseData : class, new()
-        {
-            try
-            {
-                HttpResponseMessage response = await httpClient.DeleteAsync(url);
-                response.EnsureSuccessStatusCode();
-                string responseBody = string.Empty;
-
-
-                responseBody = await response.Content.ReadAsStringAsync();
-                if (!string.IsNullOrWhiteSpace(responseBody))
-                {
-                    ResponseData responseData = JsonConvert.DeserializeObject<ResponseData>(responseBody);
-
-
-                    return SetResponse(responseData ?? null, true, "");
-                }
-
-                return SetResponse<ResponseData>(null, false, "网络请求失败！");
-
-            }
-            catch (Exception ex)
-            {
-                return SetResponse<ResponseData>(null, false, ex.Message);
-            }
-        }
-
+        
+        /** 
+        <summary>
+        Record reply sent over Network
+        </summary>
+        */
         private ResponseData SetResponse<ResponseData>(ResponseData responseData, bool success, string errormsg) where ResponseData : class, new()
         {
             if (responseData == null)

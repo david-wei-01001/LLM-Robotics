@@ -12,6 +12,7 @@ public class BarMover : MonoBehaviour
     // Unity API
     public Camera MainCamera;
     public Camera LRCamera;
+    public Camera LRCameraUp;
     public Camera LRCamera1;
     public BarController bar; // Assign single bar script here in the inspector
 
@@ -55,16 +56,20 @@ public class BarMover : MonoBehaviour
     public void Run()
     {
         // StartCoroutine(comunicationWrapper(LRCamera, Utilities.LRBarAsk, 128));
-        // StartCoroutine(CubeCubeTestWrapper(188, 42, 0.03f));
+        // StartCoroutine(CubeCubeTest2Wrapper(188, 42, 0.03f));
         // CameraWrapper();
-        StartCoroutine(ExecutionWrapper());
+        // CaptureAndSave(LRCamera, "shoot", 128, 128);
+        // StartCoroutine(ExecutionWrapper());
+        // BarCubeTest4Wrapper();
+        // StartCoroutine(BarCubeTest5Wrapper());
+        StartCoroutine(BarCubeTest6Wrapper("right", 188, 14));
     }
 
     #region Wrappers
     
     private IEnumerator ExecutionWrapper()
     {
-        // AppLeft start at 0.076, 0.022 
+        // AppLeft start at 0.04, 0.04 
         // AppRight start at 0.296, 0.022
         
         // CaptureAndSave(MainCamera, "Init");
@@ -78,6 +83,8 @@ public class BarMover : MonoBehaviour
         Debug.Log($"The appreratus is located {xPos} {zPos} the red cube.");
         yield return StartCoroutine(DirVote(LRCamera1, Utilities.LRPrompt, 128, 188, 34));
         cubePos = llmOutput.ToLower(); // right
+
+        
         Debug.Log($"The red cube is located {cubePos} of the green cube.");
 
         Debug.Log("Moving the appreratus towards the red cube.");
@@ -87,7 +94,7 @@ public class BarMover : MonoBehaviour
             yield return StartCoroutine(StepLogic(1, LRCamera, onePos, action1Prompt, 5, 128));
         }
         // CaptureAndSave(MainCamera, "start2");
-        yield return StartCoroutine(StepLogic(2, LRCamera, twoPos, action2Prompt, 6, 128));
+        yield return StartCoroutine(StepLogic(2, LRCameraUp, twoPos, action2Prompt, 5, 128));
         Debug.Log("Moving the red cube towards the green cube.");
         // CaptureAndSave(MainCamera, "start3");
         yield return StartCoroutine(StepLogic(3, LRCamera1, getDir(cubePos), Utilities.PosCheck, 0, 128, 188, 34));
@@ -124,7 +131,7 @@ public class BarMover : MonoBehaviour
         }
     }
 
-    private IEnumerator CubeCubeTestWrapper(int width, int fov, float xVal = 0)
+    private IEnumerator CubeCubeTest2Wrapper(int width, int fov, float xVal = 0)
     {
         yield return StartCoroutine(StepLogic(3, LRCamera1, Dir.Left, Utilities.PosCheck, 0, 128, width, fov, xVal));
     }
@@ -175,6 +182,79 @@ public class BarMover : MonoBehaviour
         CaptureAndSave(LRCamera1, "p4-4", 128, 256, 46, 0.05f);
     }
     
+    private void BarCubeTest4Wrapper()
+    {
+        CaptureAndSave(LRCamera, "t1-1", 128);
+        CaptureAndSave(LRCamera, "t1-2", 128, 188);
+        bar.Move(Dir.Right, 2);
+        CaptureAndSave(LRCamera, "t2-1", 128);
+        CaptureAndSave(LRCamera, "t2-2", 128, 188);
+        bar.Move(Dir.Right, 10);
+        CaptureAndSave(LRCamera, "t3-1", 128);
+        CaptureAndSave(LRCamera, "t3-2", 128, 188);
+        bar.Move(Dir.Right, 2);
+        CaptureAndSave(LRCamera, "t4-1", 128);
+        CaptureAndSave(LRCamera, "t4-2", 128, 188);
+    }
+
+    private IEnumerator BarCubeTest5Wrapper()
+    {
+        int[] widths = new int[] { 128, 188};
+
+        foreach (int width in widths)
+        {
+            Debug.Log($"width is {width}");
+            for (int i = 0; i < 5; i++)
+            {
+                // Assuming LRCamera1 is a Camera object and Utilities.LRPrompt is a string, replace these with actual references in your code
+                yield return StartCoroutine(comunicationWrapper($"{width}", LRCamera, Utilities.LRBarAsk, 128, width));
+            }
+        }
+        bar.Move(Dir.Right, 2);
+        foreach (int width in widths)
+        {
+            Debug.Log($"width is {width}");
+            for (int i = 0; i < 5; i++)
+            {
+                // Assuming LRCamera1 is a Camera object and Utilities.LRPrompt is a string, replace these with actual references in your code
+                yield return StartCoroutine(comunicationWrapper($"{width}", LRCamera, Utilities.LRBarAsk, 128, width));
+            }
+        }
+        bar.Move(Dir.Right, 10);
+        foreach (int width in widths)
+        {
+            Debug.Log($"width is {width}");
+            for (int i = 0; i < 5; i++)
+            {
+                // Assuming LRCamera1 is a Camera object and Utilities.LRPrompt is a string, replace these with actual references in your code
+                yield return StartCoroutine(comunicationWrapper($"{width}", LRCamera, Utilities.LRBarAsk, 128, width));
+            }
+        }
+        bar.Move(Dir.Right, 2);
+        foreach (int width in widths)
+        {
+            Debug.Log($"width is {width}");
+            for (int i = 0; i < 5; i++)
+            {
+                // Assuming LRCamera1 is a Camera object and Utilities.LRPrompt is a string, replace these with actual references in your code
+                yield return StartCoroutine(comunicationWrapper($"{width}", LRCamera, Utilities.LRBarAsk, 128, width));
+            }
+        }
+    }
+
+    private IEnumerator BarCubeTest6Wrapper(string xPos, int width = 128, int shift = 0)
+    {
+        bar.Move(Dir.Right, shift);
+        string zPos = "below"; // below
+        string cubePos = "right"; // right
+        bool needStepOne = directionDetermination(xPos, zPos, cubePos);
+        if (needStepOne)
+        {
+            yield return StartCoroutine(StepLogic(1, LRCamera, onePos, action1Prompt, 5, 128, width));
+        }
+        // CaptureAndSave(MainCamera, "start2");
+        yield return StartCoroutine(StepLogic(2, LRCameraUp, twoPos, action2Prompt, 5, 128));
+    }
     #endregion
 
     #region Core Functions
@@ -190,10 +270,10 @@ public class BarMover : MonoBehaviour
 
             yield return StartCoroutine(CommunicationWithGemini(terminationQuery, Data));
             llmOutput = llmOutput.ToLower();
-            if (llmOutput.Contains("yes") && moveCount < 2)
+            if (llmOutput.Contains("yes") && moveCount <= 2)
             {
-                llmOutput = "no";
                 Debug.LogError($"Step {step} sanity check captured error output: {llmOutput}");
+                llmOutput = "no";
             }
             else if (llmOutput.Contains("no") && moveCount > 36)
             {

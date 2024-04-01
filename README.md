@@ -1,6 +1,6 @@
 # LLM-Robotics
 Using LLM (Google Gemini 1.0 pro vision) to guide the movement of da Vinci Research Kit (dVRK) endowrist (represented as a bar/stick).\
-The significance of this project lies in the possible later extension of this project by using VR/AR to virtualize the da Vinci Research Kit (dVRK) endowrist as our bar, so that although dVRK endowrist is in execution in reality, we can still simply execute this program to manipulate it.
+The significance of this project lies in the possible later extension of this project by using VR/AR to virtualize the da Vinci Research Kit (dVRK) endowrist as our bar so that although dVRK endowrist is in execution in reality, we can still simply execute this program to manipulate it.
 ## LLMRoboticsProject
 This is the file containing the Unity project and code script
 - Asset is the project asset, Script folder inside it containing codes
@@ -14,7 +14,7 @@ This is the file containing the Unity project and code script
 - Create a Google Cloud account
 - Go to Asset/Scripts/AIHttpClients.cs/MyRegion
 - Change the PROJECT_ID to your project ID
-- Modify MODEL_ID and QUERY based on your needs
+- Modify MODEL_ID and QUERY based on your needs (please look at AIHttpClients.cs)
 
 # Acknowledgements And Modifications
 - The setup of this project is based on Unity Robotics Hub -> Pick and Place Tutorial. The link is here:

@@ -12,11 +12,11 @@ This is the file containing the Unity project and code script
 
 # Setup Requirements
 - Create a Google Cloud account
-- Go to Asset/Scrpits/AIHttpClients.cs
+- Go to Asset/Scrpits/AIHttpClients.cs/MyRegion
 - Change the PROJECT_ID to yoour project id
 - Modify MODEL_ID and QUERY base on your needs
 
-# Acknowledgement And Modifications
+# Acknowledgements And Modifications
 - The setup of this project is based on Unity Robotics Hub -> Pick and Place Tutorial. Link is here:
     https://github.com/Unity-Technologies/Unity-Robotics-Hub/tree/main/tutorials/pick_and_place
 - The Network connection with Gemini is based on the following repo with significant changes:

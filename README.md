@@ -11,6 +11,8 @@ This is the file containing the Unity project and code script
 - BarController.cs, Utilities.cs code for moving objects and LLM prompt
 
 # Setup Requirements
+- Download and open Unity Hub at https://unity.com/download
+- Install Unity version 2022.3.19f1 in Install -> Install Editor -> Official Releases
 - Create a Google Cloud account at https://cloud.google.com/vertex-ai?hl=en 
 - Go to Asset/Scripts/AIHttpClients.cs/MyRegion
 - Change the PROJECT_ID to your project ID

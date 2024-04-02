@@ -27,6 +27,7 @@ public class BarMover : MonoBehaviour
     private Dir twoPos;
     private string action1Prompt;
     private string action2Prompt;
+    private string PromptEnding;
    
     float epsilon = 0.0001f; // Define a small threshold value
 
@@ -37,8 +38,19 @@ public class BarMover : MonoBehaviour
         llmOutput = "";
         onePos = Dir.Up;
         twoPos = Dir.Up;
+
+        // Code for Bar Cube experiment
+        // action1Prompt = Utilities.actionHeader;
+        // action2Prompt = Utilities.actionHeader;
+        // PromptEnding = Utilities.actionTail;
+
+        // Code for Bar Disk experiment
         action1Prompt = Utilities.actionHeader;
         action2Prompt = Utilities.actionHeader;
+        PromptEnding = Utilities.actionTail;
+
+        // Code for Disk Disk experiment
+
         geminiTextRequest = new GeminiTextRequest();
     }
 
@@ -55,22 +67,123 @@ public class BarMover : MonoBehaviour
 
     public void Run()
     {
-        // StartCoroutine(comunicationWrapper(LRCamera, Utilities.LRBarAsk, 128));
+        // Driver Code for 3 scenarios
+
+        // StartCoroutine(ExecutionBarCubeWrapper());
+        // StartCoroutine(ExecutionBarDiskWrapper());
+        StartCoroutine(ExecutionDiskDiskWrapper());
+
+
+
+
+        // The following are experiments performed
+
+        // StartCoroutine(comunicationWrapper("BarDisk", LRCamera, action1Prompt + "below" + PromptEnding, 128));
         // StartCoroutine(CubeCubeTest2Wrapper(188, 42, 0.03f));
         // CameraWrapper();
         // CaptureAndSave(LRCamera, "shoot", 128, 128);
-        // StartCoroutine(ExecutionWrapper());
         // BarCubeTest4Wrapper();
         // StartCoroutine(BarCubeTest5Wrapper());
-        StartCoroutine(BarCubeTest6Wrapper("right", 188, 14));
+        // StartCoroutine(BarCubeTest6Wrapper("right", 128, 14));
+        // CaptureAndSave(LRCamera, "shoot", 128, 128);
     }
 
     #region Wrappers
     
-    private IEnumerator ExecutionWrapper()
+    private IEnumerator ExecutionDiskDiskWrapper()
     {
-        // AppLeft start at 0.04, 0.04 
-        // AppRight start at 0.296, 0.022
+        action1Prompt = Utilities.DDactionHeader;
+        action2Prompt = Utilities.DDactionHeader;
+        PromptEnding = Utilities.DiskactionTail;
+        // AppLeft start at 0.03, 0.12211, 0.07 
+        // AppRight start at 0.19, 0.12211, 0.07
+        
+        // CaptureAndSave(MainCamera, "Init");
+        Debug.Log("Program begins.");
+        Debug.Log("Determining directions.");
+        string xPos, zPos, cubePos; 
+        // yield return StartCoroutine(DirVote(LRCamera, Utilities.LRDDAsk, 128));
+        // xPos = llmOutput.ToLower(); // left
+        // yield return StartCoroutine(DirVote(LRCamera, Utilities.FBDDAsk, 128));
+        // zPos = llmOutput.ToLower(); // below
+        // Debug.Log($"The appreratus is located {xPos} {zPos} the red disk.");
+        // yield return StartCoroutine(DirVote(LRCamera1, Utilities.DiskLRPrompt, 128, 188, 34));
+        // cubePos = llmOutput.ToLower(); // right
+
+        xPos = "right";
+        zPos = "below";
+        cubePos = "right";
+        Debug.Log($"The red disk is located {cubePos} of the green cube.");
+
+        Debug.Log("Moving the appreratus towards the red disk.");
+        bool needStepOne = directionDetermination(xPos, zPos, cubePos);
+        if (needStepOne)
+        {
+            yield return StartCoroutine(StepLogic(1, LRCamera, onePos, action1Prompt, 10, 128));
+        }
+        // CaptureAndSave(MainCamera, "start2");
+        yield return StartCoroutine(StepLogic(2, LRCameraUp, twoPos, action2Prompt, 4, 128));
+        Debug.Log("Moving the red disk towards the green cube.");
+        // CaptureAndSave(MainCamera, "start3");
+        yield return StartCoroutine(StepLogic(3, LRCamera1, getDir(cubePos), Utilities.DiskPosCheck, 0, 128, 188, 34));
+        Debug.Log("Done.");
+        // CaptureAndSave(MainCamera, "done");
+    }
+
+    /**
+    <summary>
+    Control Bar like Robotics to puse a disk
+    Please use Apperatus 1, and Disk
+    Remember to assign Bar Controller to Apperatus
+    </summary>
+    */
+    private IEnumerator ExecutionBarDiskWrapper()
+    {
+        // AppLeft start at 0.04, 0.64, 0.04 
+        // AppRight start at 0.18, 0.64, 0.04
+        action1Prompt = Utilities.DiskactionHeader;
+        action2Prompt = Utilities.DiskactionHeader;
+        PromptEnding = Utilities.DiskactionTail;
+        
+        // CaptureAndSave(MainCamera, "Init");
+        Debug.Log("Program begins.");
+        Debug.Log("Determining directions.");
+        string xPos, zPos, cubePos; 
+        yield return StartCoroutine(DirVote(LRCamera, Utilities.LRDiskAsk, 128));
+        xPos = llmOutput.ToLower(); // left
+        yield return StartCoroutine(DirVote(LRCamera, Utilities.FBDiskAsk, 128));
+        zPos = llmOutput.ToLower(); // below
+        Debug.Log($"The appreratus is located {xPos} {zPos} the red disk.");
+        yield return StartCoroutine(DirVote(LRCamera1, Utilities.DiskLRPrompt, 128, 188, 34));
+        cubePos = llmOutput.ToLower(); // right
+
+        // xPos = "left";
+        // zPos = "below";
+        // cubePos = "right";
+        Debug.Log($"The red disk is located {cubePos} of the green cube.");
+
+        Debug.Log("Moving the appreratus towards the red disk.");
+        bool needStepOne = directionDetermination(xPos, zPos, cubePos);
+        if (needStepOne)
+        {
+            yield return StartCoroutine(StepLogic(1, LRCamera, onePos, action1Prompt, 7, 128, 160));
+        }
+        // when Apperatus start at right, change the adjustment to 3
+        yield return StartCoroutine(StepLogic(2, LRCameraUp, twoPos, action2Prompt, 5, 128));
+        Debug.Log("Moving the red disk towards the green cube.");
+        yield return StartCoroutine(StepLogic(3, LRCamera1, getDir(cubePos), Utilities.DiskPosCheck, 0, 128, 188, 34));
+        Debug.Log("Done.");
+    }
+    /**
+    <summary>
+    Control Bar like Robotics to puse a cube
+    Please use Apperatus 1, and Target 2
+    Remember to assign Bar Controller to Apperatus
+    </summary>
+    */
+    private IEnumerator ExecutionBarCubeWrapper()
+    {
+        // Apperatus start at 0.04, 0.64, 0.04 
         
         // CaptureAndSave(MainCamera, "Init");
         Debug.Log("Program begins.");
@@ -303,6 +416,51 @@ public class BarMover : MonoBehaviour
         }
     }
 
+    IEnumerator DoubleStepLogic(int step, Camera CamView, Dir currDir, string terminationQuery, int adjustment, int heightReso = 0, int widthReso = 0, float fov = 0, float newXPosition = 0)
+    {
+        // Bar moving
+        string Data;
+        int moveCount = 0;
+        do
+        {
+            bar.Move(currDir, 2);
+            Data = CaptureCamera(CamView, heightReso, widthReso, fov, newXPosition);
+
+            yield return StartCoroutine(CommunicationWithGemini(terminationQuery, Data));
+            llmOutput = llmOutput.ToLower();
+            if (llmOutput.Contains("yes") && moveCount <= 2)
+            {
+                Debug.LogError($"Step {step} sanity check captured error output: {llmOutput}");
+                llmOutput = "no";
+            }
+            else if (llmOutput.Contains("no") && moveCount > 36)
+            {
+                Debug.LogError($"Step {step} sanity check captured too much iteration");
+                break;
+            }
+            else
+            {
+                Debug.Log($"Step {step} response: {llmOutput}");
+            }
+            moveCount++;
+            
+            // The following code will print time series of execution 
+
+            // if (moveCount % 3 == 0)
+            // {
+            //     int quotient = moveCount / 3;
+            //     CaptureAndSave(MainCamera, $"s{step}-{quotient}");
+            // }
+            
+        } while (llmOutput.Contains("no"));
+
+        // Manual adjust
+        if (adjustment != 0)
+        {
+            bar.Move(currDir, adjustment);
+        }
+    }
+
     IEnumerator CommunicationWithGemini(params string[] strings)
     {
         yield return new WaitUntil(() => lproj);
@@ -337,15 +495,15 @@ public class BarMover : MonoBehaviour
             if (xPos.Contains("right"))
             {
                 onePos = getDir(xPos);
-                action1Prompt = action1Prompt + zPos + Utilities.actionTail;
+                action1Prompt = action1Prompt + zPos + PromptEnding;
                 twoPos = getDir(zPos);
-                action2Prompt = action2Prompt + negate(xPos) + " of" + Utilities.actionTail;
+                action2Prompt = action2Prompt + negate(xPos) + " of" + PromptEnding;
                 return true;
             }
             else
             {
                 twoPos = getDir(zPos);
-                action2Prompt = action2Prompt + xPos + " of" + Utilities.actionTail;
+                action2Prompt = action2Prompt + xPos + " of" + PromptEnding;
                 return false;
             }
         }
@@ -354,15 +512,15 @@ public class BarMover : MonoBehaviour
             if (xPos.Contains("left"))
             {
                 onePos = getDir(xPos);
-                action1Prompt = action1Prompt + zPos + Utilities.actionTail;
+                action1Prompt = action1Prompt + zPos + PromptEnding;
                 twoPos = getDir(zPos);
-                action2Prompt = action2Prompt + negate(xPos) + " of" + Utilities.actionTail;
+                action2Prompt = action2Prompt + negate(xPos) + " of" + PromptEnding;
                 return true;
             }
             else
             {
                 twoPos = getDir(zPos);
-                action2Prompt = action2Prompt + xPos + " of" + Utilities.actionTail;
+                action2Prompt = action2Prompt + xPos + " of" + PromptEnding;
                 return false;
             }
         }
@@ -371,15 +529,15 @@ public class BarMover : MonoBehaviour
             if (zPos.Contains("below"))
             {
                 onePos = getDir(zPos);
-                action1Prompt = action1Prompt + xPos + " of" + Utilities.actionTail;
+                action1Prompt = action1Prompt + xPos + " of" + PromptEnding;
                 twoPos = getDir(xPos);
-                action2Prompt = action2Prompt + negate(zPos) + Utilities.actionTail;
+                action2Prompt = action2Prompt + negate(zPos) + PromptEnding;
                 return true;
             }
             else
             {
                 twoPos = getDir(xPos);
-                action2Prompt = action2Prompt + zPos + Utilities.actionTail;
+                action2Prompt = action2Prompt + zPos + PromptEnding;
                 return false;
             }
         }
@@ -388,15 +546,15 @@ public class BarMover : MonoBehaviour
             if (zPos.Contains("above"))
             {
                 onePos = getDir(zPos);
-                action1Prompt = action1Prompt + xPos + " of" + Utilities.actionTail;
+                action1Prompt = action1Prompt + xPos + " of" + PromptEnding;
                 twoPos = getDir(xPos);
-                action2Prompt = action2Prompt + negate(zPos) + Utilities.actionTail;
+                action2Prompt = action2Prompt + negate(zPos) + PromptEnding;
                 return true;
             }
             else
             {
                 twoPos = getDir(xPos);
-                action2Prompt = action2Prompt + zPos + Utilities.actionTail;
+                action2Prompt = action2Prompt + zPos + PromptEnding;
                 return false;
             }
         }

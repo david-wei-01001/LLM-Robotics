@@ -65,19 +65,26 @@ public class BarMover : MonoBehaviour
     }
     #endregion
 
-    public void Run()
+    public void RunBarCube()
     {
-        // Driver Code for 3 scenarios
+        StartCoroutine(ExecutionBarCubeWrapper());
+    }
 
-        // StartCoroutine(ExecutionBarCubeWrapper());
-        // StartCoroutine(ExecutionBarDiskWrapper());
+    public void RunBarDisk()
+    {
+        StartCoroutine(ExecutionBarDiskWrapper());
+    }
+
+    public void RunDiskDisk()
+    {
         StartCoroutine(ExecutionDiskDiskWrapper());
+    }
 
-
-
+    public void RunExperiments()
+    {
         // The following are experiments performed
 
-        // StartCoroutine(comunicationWrapper("BarDisk", LRCamera, action1Prompt + "below" + PromptEnding, 128));
+        StartCoroutine(comunicationWrapper("BarDisk", LRCamera, Utilities.LRDDAsk, 128));
         // StartCoroutine(CubeCubeTest2Wrapper(188, 42, 0.03f));
         // CameraWrapper();
         // CaptureAndSave(LRCamera, "shoot", 128, 128);
@@ -118,7 +125,7 @@ public class BarMover : MonoBehaviour
         // zPos = "below";
         // cubePos = "right";
         Debug.Log($"The red disk is located {cubePos} of the green cube.");
-
+        bar.Move(Dir.Left, 3);
         Debug.Log("Moving the appreratus towards the red disk.");
         bool needStepOne = directionDetermination(xPos, zPos, cubePos);
         if (needStepOne)
@@ -131,7 +138,7 @@ public class BarMover : MonoBehaviour
         yield return StartCoroutine(StepLogic(2, LRCameraUp, twoPos, Utilities.DDactionUp, 4, 128));
         Debug.Log("Moving the red disk towards the green cube.");
         // CaptureAndSave(MainCamera, "start3");
-        yield return StartCoroutine(StepLogic(3, LRCamera1, getDir(cubePos), Utilities.DDPosCheck, 1, 128, 188, 34));
+        yield return StartCoroutine(StepLogic(3, LRCamera1, getDir(cubePos), Utilities.DDPosCheck, 2, 128, 188, 34));
         Debug.Log("Done.");
         // CaptureAndSave(MainCamera, "done");
     }

@@ -75,7 +75,6 @@ public class BarMover : MonoBehaviour
 
 
 
-
         // The following are experiments performed
 
         // StartCoroutine(comunicationWrapper("BarDisk", LRCamera, action1Prompt + "below" + PromptEnding, 128));
@@ -86,33 +85,38 @@ public class BarMover : MonoBehaviour
         // StartCoroutine(BarCubeTest5Wrapper());
         // StartCoroutine(BarCubeTest6Wrapper("right", 128, 14));
         // CaptureAndSave(LRCamera, "shoot", 128, 128);
+
+
+
+        // Scratch paper
+
+        // StartCoroutine(TempWrapper());
     }
 
     #region Wrappers
-    
     private IEnumerator ExecutionDiskDiskWrapper()
     {
         action1Prompt = Utilities.DDactionHeader;
         action2Prompt = Utilities.DDactionHeader;
         PromptEnding = Utilities.DiskactionTail;
-        // AppLeft start at 0.03, 0.12211, 0.07 
-        // AppRight start at 0.19, 0.12211, 0.07
+        // AppLeft start at 0.16, 0.6623, -0.14 
+        // AppRight start at 0.3, 0.6623, -0.14
         
         // CaptureAndSave(MainCamera, "Init");
         Debug.Log("Program begins.");
         Debug.Log("Determining directions.");
         string xPos, zPos, cubePos; 
-        // yield return StartCoroutine(DirVote(LRCamera, Utilities.LRDDAsk, 128));
-        // xPos = llmOutput.ToLower(); // left
-        // yield return StartCoroutine(DirVote(LRCamera, Utilities.FBDDAsk, 128));
-        // zPos = llmOutput.ToLower(); // below
-        // Debug.Log($"The appreratus is located {xPos} {zPos} the red disk.");
-        // yield return StartCoroutine(DirVote(LRCamera1, Utilities.DiskLRPrompt, 128, 188, 34));
-        // cubePos = llmOutput.ToLower(); // right
+        yield return StartCoroutine(DirVote(LRCamera, Utilities.LRDDAsk, 128));
+        xPos = llmOutput.ToLower(); // right
+        yield return StartCoroutine(DirVote(LRCamera, Utilities.FBDDAsk, 128));
+        zPos = llmOutput.ToLower(); // below
+        Debug.Log($"The appreratus is located {xPos} {zPos} the red disk.");
+        yield return StartCoroutine(DirVote(LRCamera1, Utilities.DiskLRPrompt, 128, 188, 34));
+        cubePos = llmOutput.ToLower(); // right
 
-        xPos = "right";
-        zPos = "below";
-        cubePos = "right";
+        // xPos = "right";
+        // zPos = "below";
+        // cubePos = "right";
         Debug.Log($"The red disk is located {cubePos} of the green cube.");
 
         Debug.Log("Moving the appreratus towards the red disk.");
@@ -122,10 +126,12 @@ public class BarMover : MonoBehaviour
             yield return StartCoroutine(StepLogic(1, LRCamera, onePos, action1Prompt, 10, 128));
         }
         // CaptureAndSave(MainCamera, "start2");
-        yield return StartCoroutine(StepLogic(2, LRCameraUp, twoPos, action2Prompt, 4, 128));
+
+        // might need to change 'horizontally' in Utilities.DDactionUp to 'vertically'
+        yield return StartCoroutine(StepLogic(2, LRCameraUp, twoPos, Utilities.DDactionUp, 4, 128));
         Debug.Log("Moving the red disk towards the green cube.");
         // CaptureAndSave(MainCamera, "start3");
-        yield return StartCoroutine(StepLogic(3, LRCamera1, getDir(cubePos), Utilities.DiskPosCheck, 0, 128, 188, 34));
+        yield return StartCoroutine(StepLogic(3, LRCamera1, getDir(cubePos), Utilities.DDPosCheck, 1, 128, 188, 34));
         Debug.Log("Done.");
         // CaptureAndSave(MainCamera, "done");
     }
@@ -169,7 +175,7 @@ public class BarMover : MonoBehaviour
             yield return StartCoroutine(StepLogic(1, LRCamera, onePos, action1Prompt, 7, 128, 160));
         }
         // when Apperatus start at right, change the adjustment to 3
-        yield return StartCoroutine(StepLogic(2, LRCameraUp, twoPos, action2Prompt, 5, 128));
+        yield return StartCoroutine(StepLogic(2, LRCameraUp, twoPos, action2Prompt, 3, 128));
         Debug.Log("Moving the red disk towards the green cube.");
         yield return StartCoroutine(StepLogic(3, LRCamera1, getDir(cubePos), Utilities.DiskPosCheck, 0, 128, 188, 34));
         Debug.Log("Done.");
@@ -367,6 +373,20 @@ public class BarMover : MonoBehaviour
         }
         // CaptureAndSave(MainCamera, "start2");
         yield return StartCoroutine(StepLogic(2, LRCameraUp, twoPos, action2Prompt, 5, 128));
+    }
+
+    /**
+    <summary>
+    Scratch Paper
+    </summary>
+    */
+     private IEnumerator TempWrapper()
+    {
+        yield return null;
+
+
+        
+        // yield return StartCoroutine(StepLogic(3, LRCamera1, Dir.Left, Utilities.DDPosCheck, 0, 128, 188, 34));
     }
     #endregion
 

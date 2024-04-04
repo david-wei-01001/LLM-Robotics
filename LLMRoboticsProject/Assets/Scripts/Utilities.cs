@@ -25,5 +25,8 @@ public class Utilities
     public static readonly string FBDDAsk = @"Given the image with a black disk and a red disk, is the black disk on the above or below the red disk? Please respond with only one word: 'above', or 'below'";
     
     public static readonly string DDactionHeader = @"Given the image with a black disk and a red disk, is the black disk positioned directly ";
+    public static readonly string DDactionUp = @"Given the image with a black disk and a red disk, is the black disk almost horizontally aligned with the red disk? ";
+    public static readonly string DDPosCheck = @"Given the image with a two disks and a green cube, does one disk reach the green cube? Respond 'yes' if one disk touchs the green cube, 'no' otherwise. Respond with only one word: 'yes' or 'no'";
   
+    
 }

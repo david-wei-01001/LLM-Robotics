@@ -12,7 +12,7 @@ public class BarMover : MonoBehaviour
     // Unity API
     public Camera MainCamera;
     public Camera LRCamera;
-    public Camera LRCameraUp;
+    public Camera ABCamera;
     public Camera LRCamera1;
     public BarController bar; // Assign single bar script here in the inspector
 
@@ -135,7 +135,7 @@ public class BarMover : MonoBehaviour
         // CaptureAndSave(MainCamera, "start2");
 
         // might need to change 'horizontally' in Utilities.DDactionUp to 'vertically'
-        yield return StartCoroutine(StepLogic(2, LRCameraUp, twoPos, Utilities.DDactionUp, 4, 128));
+        yield return StartCoroutine(StepLogic(2, ABCamera, twoPos, Utilities.DDactionUp, 4, 128));
         Debug.Log("Moving the red disk towards the green cube.");
         // CaptureAndSave(MainCamera, "start3");
         yield return StartCoroutine(StepLogic(3, LRCamera1, getDir(cubePos), Utilities.DDPosCheck, 2, 128, 188, 34));
@@ -182,7 +182,7 @@ public class BarMover : MonoBehaviour
             yield return StartCoroutine(StepLogic(1, LRCamera, onePos, action1Prompt, 7, 128, 160));
         }
         // when Apperatus start at right, change the adjustment to 3
-        yield return StartCoroutine(StepLogic(2, LRCameraUp, twoPos, action2Prompt, 3, 128));
+        yield return StartCoroutine(StepLogic(2, ABCamera, twoPos, action2Prompt, 3, 128));
         Debug.Log("Moving the red disk towards the green cube.");
         yield return StartCoroutine(StepLogic(3, LRCamera1, getDir(cubePos), Utilities.DiskPosCheck, 0, 128, 188, 34));
         Debug.Log("Done.");
@@ -220,7 +220,7 @@ public class BarMover : MonoBehaviour
             yield return StartCoroutine(StepLogic(1, LRCamera, onePos, action1Prompt, 5, 128));
         }
         // CaptureAndSave(MainCamera, "start2");
-        yield return StartCoroutine(StepLogic(2, LRCameraUp, twoPos, action2Prompt, 5, 128));
+        yield return StartCoroutine(StepLogic(2, ABCamera, twoPos, action2Prompt, 5, 128));
         Debug.Log("Moving the red cube towards the green cube.");
         // CaptureAndSave(MainCamera, "start3");
         yield return StartCoroutine(StepLogic(3, LRCamera1, getDir(cubePos), Utilities.PosCheck, 0, 128, 188, 34));
@@ -379,7 +379,7 @@ public class BarMover : MonoBehaviour
             yield return StartCoroutine(StepLogic(1, LRCamera, onePos, action1Prompt, 5, 128, width));
         }
         // CaptureAndSave(MainCamera, "start2");
-        yield return StartCoroutine(StepLogic(2, LRCameraUp, twoPos, action2Prompt, 5, 128));
+        yield return StartCoroutine(StepLogic(2, ABCamera, twoPos, action2Prompt, 5, 128));
     }
 
     /**

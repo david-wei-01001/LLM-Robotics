@@ -1,4 +1,4 @@
-# LLM Robotics
+# LLM-Enhanced Robotics Manipulation
 Using LLM (Google Gemini 1.0 pro vision) to guide the movement of da Vinci Research Kit (dVRK) endowrist (represented as a bar/stick).\
 The significance of this project lies in the possible later extension of this project by using VR/AR to virtualize the da Vinci Research Kit (dVRK) endowrist as our bar so that although dVRK endowrist is in execution in reality, we can still simply execute this program to manipulate it.
 ## LLMRoboticsProject

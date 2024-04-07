@@ -6,7 +6,7 @@ The significance of this project lies in the possible later extension of this pr
 </div>
 
 ## LLMRoboticsProject
-This is the file containing the Unity project and code script
+This is the folder containing the Unity project and code script
 - Asset is the project asset, Script folder inside it containing codes
 
 ## Codes

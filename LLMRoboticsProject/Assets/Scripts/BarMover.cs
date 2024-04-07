@@ -3,8 +3,9 @@ using System.Collections;
 using System.Threading.Tasks;
 using Gemini;
 using System;
-using System.IO;
-
+using Directions;
+using static Utilities;
+using static Queries;
 
 public class BarMover : MonoBehaviour
 {
@@ -14,6 +15,7 @@ public class BarMover : MonoBehaviour
     public Camera LRCamera;
     public Camera ABCamera;
     public Camera LRCamera1;
+    public Camera SFCamera;
     public BarController bar; // Assign single bar script here in the inspector
 
     // Lock and Synchronization
@@ -29,7 +31,8 @@ public class BarMover : MonoBehaviour
     private string action2Prompt;
     private string PromptEnding;
    
-    float epsilon = 0.0001f; // Define a small threshold value
+    
+    const float k_Wait = 0.1f;
 
 
     void Start()
@@ -39,73 +42,26 @@ public class BarMover : MonoBehaviour
         onePos = Dir.Up;
         twoPos = Dir.Up;
 
-        // Code for Bar Cube experiment
-        // action1Prompt = Utilities.actionHeader;
-        // action2Prompt = Utilities.actionHeader;
-        // PromptEnding = Utilities.actionTail;
-
-        // Code for Bar Disk experiment
-        action1Prompt = Utilities.actionHeader;
-        action2Prompt = Utilities.actionHeader;
-        PromptEnding = Utilities.actionTail;
-
-        // Code for Disk Disk experiment
+        action1Prompt = actionHeader;
+        action2Prompt = actionHeader;
+        PromptEnding = actionTail;
 
         geminiTextRequest = new GeminiTextRequest();
     }
 
-    public enum Dir
-    {
-        Left,
-        Right,
-        Up,
-        Down,
-        Forward,
-        Back
-    }
     #endregion
 
-    public void RunBarCube()
-    {
-        StartCoroutine(ExecutionBarCubeWrapper());
-    }
-
-    public void RunBarDisk()
-    {
-        StartCoroutine(ExecutionBarDiskWrapper());
-    }
-
+    #region DiskDiskCode
     public void RunDiskDisk()
     {
         StartCoroutine(ExecutionDiskDiskWrapper());
     }
 
-    public void RunExperiments()
-    {
-        // The following are experiments performed
-
-        StartCoroutine(comunicationWrapper("BarDisk", LRCamera, Utilities.LRDDAsk, 128));
-        // StartCoroutine(CubeCubeTest2Wrapper(188, 42, 0.03f));
-        // CameraWrapper();
-        // CaptureAndSave(LRCamera, "shoot", 128, 128);
-        // BarCubeTest4Wrapper();
-        // StartCoroutine(BarCubeTest5Wrapper());
-        // StartCoroutine(BarCubeTest6Wrapper("right", 128, 14));
-        // CaptureAndSave(LRCamera, "shoot", 128, 128);
-
-
-
-        // Scratch paper
-
-        // StartCoroutine(TempWrapper());
-    }
-
-    #region Wrappers
     private IEnumerator ExecutionDiskDiskWrapper()
     {
-        action1Prompt = Utilities.DDactionHeader;
-        action2Prompt = Utilities.DDactionHeader;
-        PromptEnding = Utilities.DiskactionTail;
+        action1Prompt = DDactionHeader;
+        action2Prompt = DDactionHeader;
+        PromptEnding = DiskactionTail;
         // AppLeft start at 0.16, 0.6623, -0.14 
         // AppRight start at 0.3, 0.6623, -0.14
         
@@ -113,12 +69,12 @@ public class BarMover : MonoBehaviour
         Debug.Log("Program begins.");
         Debug.Log("Determining directions.");
         string xPos, zPos, cubePos; 
-        yield return StartCoroutine(DirVote(LRCamera, Utilities.LRDDAsk, 128));
+        yield return StartCoroutine(DirVote(LRCamera, LRDDAsk, 128));
         xPos = llmOutput.ToLower(); // right
-        yield return StartCoroutine(DirVote(LRCamera, Utilities.FBDDAsk, 128));
+        yield return StartCoroutine(DirVote(LRCamera, FBDDAsk, 128));
         zPos = llmOutput.ToLower(); // below
         Debug.Log($"The appreratus is located {xPos} {zPos} the red disk.");
-        yield return StartCoroutine(DirVote(LRCamera1, Utilities.DiskLRPrompt, 128, 188, 34));
+        yield return StartCoroutine(DirVote(LRCamera1, DiskLRPrompt, 128, 188, 34));
         cubePos = llmOutput.ToLower(); // right
 
         // xPos = "right";
@@ -130,17 +86,24 @@ public class BarMover : MonoBehaviour
         bool needStepOne = directionDetermination(xPos, zPos, cubePos);
         if (needStepOne)
         {
-            yield return StartCoroutine(StepLogic(1, LRCamera, onePos, action1Prompt, 10, 128));
+            yield return StartCoroutine(StepLogic(1, LRCamera, onePos, action1Prompt, 5, 128));
         }
         // CaptureAndSave(MainCamera, "start2");
 
-        // might need to change 'horizontally' in Utilities.DDactionUp to 'vertically'
-        yield return StartCoroutine(StepLogic(2, ABCamera, twoPos, Utilities.DDactionUp, 4, 128));
+        // might need to change 'horizontally' in DDactionUp to 'vertically'
+        yield return StartCoroutine(StepLogic(2, ABCamera, twoPos, DDactionUp, 4, 128));
         Debug.Log("Moving the red disk towards the green cube.");
         // CaptureAndSave(MainCamera, "start3");
-        yield return StartCoroutine(StepLogic(3, LRCamera1, getDir(cubePos), Utilities.DDPosCheck, 2, 128, 188, 34));
+        yield return StartCoroutine(SmartStepLogic(3, LRCamera1, SFCamera, Dir.Left, DDPosCheck, 2, 128, 188, 34));
         Debug.Log("Done.");
         // CaptureAndSave(MainCamera, "done");
+    }
+    #endregion
+
+    #region BarDiskCode
+    public void RunBarDisk()
+    {
+        StartCoroutine(ExecutionBarDiskWrapper());
     }
 
     /**
@@ -154,20 +117,20 @@ public class BarMover : MonoBehaviour
     {
         // AppLeft start at 0.04, 0.64, 0.04 
         // AppRight start at 0.18, 0.64, 0.04
-        action1Prompt = Utilities.DiskactionHeader;
-        action2Prompt = Utilities.DiskactionHeader;
-        PromptEnding = Utilities.DiskactionTail;
+        action1Prompt = DiskactionHeader;
+        action2Prompt = DiskactionHeader;
+        PromptEnding = DiskactionTail;
         
         // CaptureAndSave(MainCamera, "Init");
         Debug.Log("Program begins.");
         Debug.Log("Determining directions.");
         string xPos, zPos, cubePos; 
-        yield return StartCoroutine(DirVote(LRCamera, Utilities.LRDiskAsk, 128));
+        yield return StartCoroutine(DirVote(LRCamera, LRDiskAsk, 128));
         xPos = llmOutput.ToLower(); // left
-        yield return StartCoroutine(DirVote(LRCamera, Utilities.FBDiskAsk, 128));
+        yield return StartCoroutine(DirVote(LRCamera, FBDiskAsk, 128));
         zPos = llmOutput.ToLower(); // below
         Debug.Log($"The appreratus is located {xPos} {zPos} the red disk.");
-        yield return StartCoroutine(DirVote(LRCamera1, Utilities.DiskLRPrompt, 128, 188, 34));
+        yield return StartCoroutine(DirVote(LRCamera1, DiskLRPrompt, 128, 188, 34));
         cubePos = llmOutput.ToLower(); // right
 
         // xPos = "left";
@@ -184,9 +147,17 @@ public class BarMover : MonoBehaviour
         // when Apperatus start at right, change the adjustment to 3
         yield return StartCoroutine(StepLogic(2, ABCamera, twoPos, action2Prompt, 3, 128));
         Debug.Log("Moving the red disk towards the green cube.");
-        yield return StartCoroutine(StepLogic(3, LRCamera1, getDir(cubePos), Utilities.DiskPosCheck, 0, 128, 188, 34));
+        yield return StartCoroutine(StepLogic(3, LRCamera1, getDir(cubePos), DiskPosCheck, 0, 128, 188, 34));
         Debug.Log("Done.");
     }
+    #endregion
+
+    #region BarCubeCode
+    public void RunBarCube()
+    {
+        StartCoroutine(ExecutionBarCubeWrapper());
+    }
+
     /**
     <summary>
     Control Bar like Robotics to puse a cube
@@ -202,12 +173,12 @@ public class BarMover : MonoBehaviour
         Debug.Log("Program begins.");
         Debug.Log("Determining directions.");
         string xPos, zPos, cubePos; 
-        yield return StartCoroutine(DirVote(LRCamera, Utilities.LRBarAsk, 128));
+        yield return StartCoroutine(DirVote(LRCamera, LRBarAsk, 128));
         xPos = llmOutput.ToLower(); // left
-        yield return StartCoroutine(DirVote(LRCamera, Utilities.FBBarAsk, 128));
+        yield return StartCoroutine(DirVote(LRCamera, FBBarAsk, 128));
         zPos = llmOutput.ToLower(); // below
         Debug.Log($"The appreratus is located {xPos} {zPos} the red cube.");
-        yield return StartCoroutine(DirVote(LRCamera1, Utilities.LRPrompt, 128, 188, 34));
+        yield return StartCoroutine(DirVote(LRCamera1, LRPrompt, 128, 188, 34));
         cubePos = llmOutput.ToLower(); // right
 
         
@@ -223,9 +194,31 @@ public class BarMover : MonoBehaviour
         yield return StartCoroutine(StepLogic(2, ABCamera, twoPos, action2Prompt, 5, 128));
         Debug.Log("Moving the red cube towards the green cube.");
         // CaptureAndSave(MainCamera, "start3");
-        yield return StartCoroutine(StepLogic(3, LRCamera1, getDir(cubePos), Utilities.PosCheck, 0, 128, 188, 34));
+        yield return StartCoroutine(StepLogic(3, LRCamera1, getDir(cubePos), PosCheck, 0, 128, 188, 34));
         Debug.Log("Done.");
         // CaptureAndSave(MainCamera, "done");
+    }
+    #endregion
+
+    #region ExperimentCode
+    public void RunExperiments()
+    {
+        // The following are experiments performed
+
+        StartCoroutine(comunicationWrapper("BarDisk", SFCamera, DDPosCheck, 128, 188, 34));
+        // StartCoroutine(CubeCubeTest2Wrapper(188, 42, 0.03f));
+        // CameraWrapper();
+        // CaptureAndSave(LRCamera, "shoot", 128, 128);
+        // BarCubeTest4Wrapper();
+        // StartCoroutine(BarCubeTest5Wrapper());
+        // StartCoroutine(BarCubeTest6Wrapper("right", 128, 14));
+        CaptureAndSave(SFCamera, "shoot",  128, 188, 34);
+
+
+
+        // Scratch paper
+
+        // StartCoroutine(TempWrapper());
     }
 
     private IEnumerator comunicationWrapper(String discriminator, Camera camView, string query, int heightReso = 0, int widthReso = 0, float fov = 0, float newXPosition = 0)
@@ -236,6 +229,21 @@ public class BarMover : MonoBehaviour
         Debug.Log(discriminator + $"Response is {llmOutput}");
     }
 
+    /**
+    <summary>
+    Scratch Paper
+    </summary>
+    */
+     private IEnumerator TempWrapper()
+    {
+        // yield return null;
+
+
+        yield return StartCoroutine(SmartStepLogic(3, LRCamera1, SFCamera, Dir.Left, DDPosCheck, 2, 128, 188, 34));
+    }
+    #endregion
+
+    #region TestWrapper
     private IEnumerator CubeCubeTest1Wrapper()
     {
         // Apperatus in test start at 0.22, 0.22
@@ -250,8 +258,8 @@ public class BarMover : MonoBehaviour
                 Debug.Log($"width is {width}");
                 for (int i = 0; i < 5; i++)
                 {
-                    // Assuming LRCamera1 is a Camera object and Utilities.LRPrompt is a string, replace these with actual references in your code
-                    yield return StartCoroutine(comunicationWrapper($"{fov}, {width}", LRCamera1, Utilities.LRPrompt, 128, width, fov));
+                    // Assuming LRCamera1 is a Camera object and LRPrompt is a string, replace these with actual references in your code
+                    yield return StartCoroutine(comunicationWrapper($"{fov}, {width}", LRCamera1, LRPrompt, 128, width, fov));
                 }
             }
         }
@@ -259,7 +267,7 @@ public class BarMover : MonoBehaviour
 
     private IEnumerator CubeCubeTest2Wrapper(int width, int fov, float xVal = 0)
     {
-        yield return StartCoroutine(StepLogic(3, LRCamera1, Dir.Left, Utilities.PosCheck, 0, 128, width, fov, xVal));
+        yield return StartCoroutine(StepLogic(3, LRCamera1, Dir.Left, PosCheck, 0, 128, width, fov, xVal));
     }
 
     private IEnumerator CubeCubeTest3Wrapper()
@@ -278,49 +286,13 @@ public class BarMover : MonoBehaviour
                 {
                     for (int i = 0; i < 5; i++)
                     {
-                        // Assuming LRCamera1 is a Camera object and Utilities.LRPrompt is a string, replace these with actual references in your code
-                        yield return StartCoroutine(comunicationWrapper($"{fov}, {width}, {val}", LRCamera1, Utilities.LRPrompt, 128, width, fov, val));
+                        // Assuming LRCamera1 is a Camera object and LRPrompt is a string, replace these with actual references in your code
+                        yield return StartCoroutine(comunicationWrapper($"{fov}, {width}, {val}", LRCamera1, LRPrompt, 128, width, fov, val));
                     }
                 }
                 
             }
         }
-    }
-
-    private void CameraWrapper()
-    {
-        CaptureAndSave(LRCamera1, "p1-1", 128, 188, 42, -0.05f);
-        CaptureAndSave(LRCamera1, "p1-2", 128, 188, 42, -0.03f);
-        CaptureAndSave(LRCamera1, "p1-3", 128, 188, 42, 0.03f);
-        CaptureAndSave(LRCamera1, "p1-4", 128, 188, 42, 0.05f);
-        CaptureAndSave(LRCamera1, "p2-1", 128, 256, 42, -0.05f);
-        CaptureAndSave(LRCamera1, "p2-2", 128, 256, 42, -0.03f);
-        CaptureAndSave(LRCamera1, "p2-3", 128, 256, 42, 0.03f);
-        CaptureAndSave(LRCamera1, "p2-4", 128, 256, 42, 0.05f);
-        
-        CaptureAndSave(LRCamera1, "p3-1", 128, 188, 46, -0.05f);
-        CaptureAndSave(LRCamera1, "p3-2", 128, 188, 46, -0.03f);
-        CaptureAndSave(LRCamera1, "p3-3", 128, 188, 46, 0.03f);
-        CaptureAndSave(LRCamera1, "p3-4", 128, 188, 46, 0.05f);
-        CaptureAndSave(LRCamera1, "p4-1", 128, 256, 46, -0.05f);
-        CaptureAndSave(LRCamera1, "p4-2", 128, 256, 46, -0.03f);
-        CaptureAndSave(LRCamera1, "p4-3", 128, 256, 46, 0.03f);
-        CaptureAndSave(LRCamera1, "p4-4", 128, 256, 46, 0.05f);
-    }
-    
-    private void BarCubeTest4Wrapper()
-    {
-        CaptureAndSave(LRCamera, "t1-1", 128);
-        CaptureAndSave(LRCamera, "t1-2", 128, 188);
-        bar.Move(Dir.Right, 2);
-        CaptureAndSave(LRCamera, "t2-1", 128);
-        CaptureAndSave(LRCamera, "t2-2", 128, 188);
-        bar.Move(Dir.Right, 10);
-        CaptureAndSave(LRCamera, "t3-1", 128);
-        CaptureAndSave(LRCamera, "t3-2", 128, 188);
-        bar.Move(Dir.Right, 2);
-        CaptureAndSave(LRCamera, "t4-1", 128);
-        CaptureAndSave(LRCamera, "t4-2", 128, 188);
     }
 
     private IEnumerator BarCubeTest5Wrapper()
@@ -332,8 +304,8 @@ public class BarMover : MonoBehaviour
             Debug.Log($"width is {width}");
             for (int i = 0; i < 5; i++)
             {
-                // Assuming LRCamera1 is a Camera object and Utilities.LRPrompt is a string, replace these with actual references in your code
-                yield return StartCoroutine(comunicationWrapper($"{width}", LRCamera, Utilities.LRBarAsk, 128, width));
+                // Assuming LRCamera1 is a Camera object and LRPrompt is a string, replace these with actual references in your code
+                yield return StartCoroutine(comunicationWrapper($"{width}", LRCamera, LRBarAsk, 128, width));
             }
         }
         bar.Move(Dir.Right, 2);
@@ -342,8 +314,8 @@ public class BarMover : MonoBehaviour
             Debug.Log($"width is {width}");
             for (int i = 0; i < 5; i++)
             {
-                // Assuming LRCamera1 is a Camera object and Utilities.LRPrompt is a string, replace these with actual references in your code
-                yield return StartCoroutine(comunicationWrapper($"{width}", LRCamera, Utilities.LRBarAsk, 128, width));
+                // Assuming LRCamera1 is a Camera object and LRPrompt is a string, replace these with actual references in your code
+                yield return StartCoroutine(comunicationWrapper($"{width}", LRCamera, LRBarAsk, 128, width));
             }
         }
         bar.Move(Dir.Right, 10);
@@ -352,8 +324,8 @@ public class BarMover : MonoBehaviour
             Debug.Log($"width is {width}");
             for (int i = 0; i < 5; i++)
             {
-                // Assuming LRCamera1 is a Camera object and Utilities.LRPrompt is a string, replace these with actual references in your code
-                yield return StartCoroutine(comunicationWrapper($"{width}", LRCamera, Utilities.LRBarAsk, 128, width));
+                // Assuming LRCamera1 is a Camera object and LRPrompt is a string, replace these with actual references in your code
+                yield return StartCoroutine(comunicationWrapper($"{width}", LRCamera, LRBarAsk, 128, width));
             }
         }
         bar.Move(Dir.Right, 2);
@@ -362,8 +334,8 @@ public class BarMover : MonoBehaviour
             Debug.Log($"width is {width}");
             for (int i = 0; i < 5; i++)
             {
-                // Assuming LRCamera1 is a Camera object and Utilities.LRPrompt is a string, replace these with actual references in your code
-                yield return StartCoroutine(comunicationWrapper($"{width}", LRCamera, Utilities.LRBarAsk, 128, width));
+                // Assuming LRCamera1 is a Camera object and LRPrompt is a string, replace these with actual references in your code
+                yield return StartCoroutine(comunicationWrapper($"{width}", LRCamera, LRBarAsk, 128, width));
             }
         }
     }
@@ -381,21 +353,45 @@ public class BarMover : MonoBehaviour
         // CaptureAndSave(MainCamera, "start2");
         yield return StartCoroutine(StepLogic(2, ABCamera, twoPos, action2Prompt, 5, 128));
     }
-
-    /**
-    <summary>
-    Scratch Paper
-    </summary>
-    */
-     private IEnumerator TempWrapper()
-    {
-        yield return null;
-
-
-        
-        // yield return StartCoroutine(StepLogic(3, LRCamera1, Dir.Left, Utilities.DDPosCheck, 0, 128, 188, 34));
-    }
     #endregion
+
+    #region CameraTestWrapper
+        public void CameraWrapper()
+        {
+            CaptureAndSave(LRCamera1, "p1-1", 128, 188, 42, -0.05f);
+            CaptureAndSave(LRCamera1, "p1-2", 128, 188, 42, -0.03f);
+            CaptureAndSave(LRCamera1, "p1-3", 128, 188, 42, 0.03f);
+            CaptureAndSave(LRCamera1, "p1-4", 128, 188, 42, 0.05f);
+            CaptureAndSave(LRCamera1, "p2-1", 128, 256, 42, -0.05f);
+            CaptureAndSave(LRCamera1, "p2-2", 128, 256, 42, -0.03f);
+            CaptureAndSave(LRCamera1, "p2-3", 128, 256, 42, 0.03f);
+            CaptureAndSave(LRCamera1, "p2-4", 128, 256, 42, 0.05f);
+            
+            CaptureAndSave(LRCamera1, "p3-1", 128, 188, 46, -0.05f);
+            CaptureAndSave(LRCamera1, "p3-2", 128, 188, 46, -0.03f);
+            CaptureAndSave(LRCamera1, "p3-3", 128, 188, 46, 0.03f);
+            CaptureAndSave(LRCamera1, "p3-4", 128, 188, 46, 0.05f);
+            CaptureAndSave(LRCamera1, "p4-1", 128, 256, 46, -0.05f);
+            CaptureAndSave(LRCamera1, "p4-2", 128, 256, 46, -0.03f);
+            CaptureAndSave(LRCamera1, "p4-3", 128, 256, 46, 0.03f);
+            CaptureAndSave(LRCamera1, "p4-4", 128, 256, 46, 0.05f);
+        }
+        
+        public void BarCubeTest4Wrapper()
+        {
+            CaptureAndSave(LRCamera, "t1-1", 128);
+            CaptureAndSave(LRCamera, "t1-2", 128, 188);
+            bar.Move(Dir.Right, 2);
+            CaptureAndSave(LRCamera, "t2-1", 128);
+            CaptureAndSave(LRCamera, "t2-2", 128, 188);
+            bar.Move(Dir.Right, 10);
+            CaptureAndSave(LRCamera, "t3-1", 128);
+            CaptureAndSave(LRCamera, "t3-2", 128, 188);
+            bar.Move(Dir.Right, 2);
+            CaptureAndSave(LRCamera, "t4-1", 128);
+            CaptureAndSave(LRCamera, "t4-2", 128, 188);
+        }
+        #endregion
 
     #region Core Functions
     IEnumerator StepLogic(int step, Camera CamView, Dir currDir, string terminationQuery, int adjustment, int heightReso = 0, int widthReso = 0, float fov = 0, float newXPosition = 0)
@@ -443,17 +439,36 @@ public class BarMover : MonoBehaviour
         }
     }
 
-    IEnumerator DoubleStepLogic(int step, Camera CamView, Dir currDir, string terminationQuery, int adjustment, int heightReso = 0, int widthReso = 0, float fov = 0, float newXPosition = 0)
+    IEnumerator SmartStepLogic(int step, Camera CamView, Camera SFCamera, Dir currDir, string terminationQuery, int adjustment, int heightReso = 0, int widthReso = 0, float fov = 0, float newXPosition = 0)
     {
         // Bar moving
-        string Data;
+        string Data, Data2;
         int moveCount = 0;
         do
         {
-            bar.Move(currDir, 2);
+            bar.Move(currDir);
             Data = CaptureCamera(CamView, heightReso, widthReso, fov, newXPosition);
-
-            yield return StartCoroutine(CommunicationWithGemini(terminationQuery, Data));
+            Data2 = CaptureCamera(SFCamera, heightReso, widthReso, fov, newXPosition);
+            yield return StartCoroutine(CommunicationWithGemini("is the red object on the same height as the black object? Respond with 'same', 'above', or 'below'.", Data));
+            Debug.Log($"Height response is {llmOutput}");
+            
+            if (llmOutput.Contains("above"))
+            {
+                Dir adjustDir = negDir(currDir);
+                bar.Move(adjustDir, 3);
+                yield return new WaitForSeconds(k_Wait);
+                bar.Move(Dir.Forward, 4);
+                yield return new WaitForSeconds(k_Wait);
+            }
+            else if (llmOutput.Contains("below"))
+            {
+                Dir adjustDir = negDir(currDir);
+                bar.Move(adjustDir, 3);
+                yield return new WaitForSeconds(k_Wait);
+                bar.Move(Dir.Back, 4);
+                yield return new WaitForSeconds(k_Wait);
+            }
+            yield return StartCoroutine(CommunicationWithGemini(terminationQuery, Data2));
             llmOutput = llmOutput.ToLower();
             if (llmOutput.Contains("yes") && moveCount <= 2)
             {
@@ -470,14 +485,6 @@ public class BarMover : MonoBehaviour
                 Debug.Log($"Step {step} response: {llmOutput}");
             }
             moveCount++;
-            
-            // The following code will print time series of execution 
-
-            // if (moveCount % 3 == 0)
-            // {
-            //     int quotient = moveCount / 3;
-            //     CaptureAndSave(MainCamera, $"s{step}-{quotient}");
-            // }
             
         } while (llmOutput.Contains("no"));
 
@@ -513,7 +520,6 @@ public class BarMover : MonoBehaviour
     #endregion
 
     #region Directions
-    
     private bool directionDetermination(string xPos, string zPos, string cubePos)
     {
         if (cubePos.Contains("left"))
@@ -642,173 +648,6 @@ public class BarMover : MonoBehaviour
             Debug.LogError($"Direction voting failed with counts right: {rightCount}, left: {leftCount}, front: {fCount}, back: {bCount}.");
             yield break; // This exits the coroutine
         }
-    }
-
-    string negate(string pos)
-    {
-        if (pos.Contains("left"))
-        {
-            return "right";
-        }
-        else if (pos.Contains("right"))
-        {
-            return "left";
-        }
-        else if (pos.Contains("above"))
-        {
-            return "below";
-        }
-        else
-        {
-            return "above";
-        }
-    }
-
-    Dir getDir(string pos)
-    {
-        if (pos.Contains("left"))
-        {
-            return Dir.Right;
-        }
-        else if (pos.Contains("right"))
-        {
-            return Dir.Left;
-        }
-        else if (pos.Contains("above"))
-        {
-            return Dir.Back;
-        }
-        else
-        {
-            return Dir.Forward;
-        }
-    }
-    #endregion
-
-    #region Camera Driver
-    public void CaptureAndSave(Camera cameraToCapture, string imagePath, int heightReso = 0, int widthReso = 0, float fov = 0, float newXPosition = 0)
-    {
-        // Create a RenderTexture with the same dimensions as the screen
-        RenderTexture renderTexture;
-        if (heightReso == 0)
-        {
-            renderTexture = new RenderTexture(Screen.width, Screen.height, 24);
-        }
-        else if (widthReso == 0)
-        {
-            renderTexture = new RenderTexture(heightReso, heightReso, 24);
-            
-        }
-        else
-        {
-            renderTexture = new RenderTexture(widthReso, heightReso, 24);
-        }
-        
-        cameraToCapture.targetTexture = renderTexture;
-        
-        if (Math.Abs(fov) >= epsilon)
-        {
-            cameraToCapture.fieldOfView = fov;
-        }
-
-         // Change the camera's x position
-        if (Math.Abs(newXPosition) >= epsilon)
-        {
-            Vector3 currentPosition = cameraToCapture.transform.position;
-            cameraToCapture.transform.position = new Vector3(newXPosition, currentPosition.y, currentPosition.z);
-        }
-
-        // Force camera to render
-        cameraToCapture.Render();
-
-        // Create a new Texture2D with the camera's dimensions
-        Texture2D renderResult = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.ARGB32, false);
-        
-        // Set the RenderTexture as the active RenderTexture
-        RenderTexture.active = renderTexture;
-        
-        // Read the pixels from the RenderTexture and apply them to the Texture2D
-        renderResult.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
-        renderResult.Apply();
-
-        // Encode the Texture2D to a PNG
-        byte[] byteArray = renderResult.EncodeToPNG();
-
-        // Save the PNG to disk
-        string fullPath = Path.Combine(Application.dataPath, imagePath + ".png");
-        File.WriteAllBytes(fullPath, byteArray);
-
-        Debug.Log("Saved Image to " + fullPath);
-
-        // Clean up
-        RenderTexture.active = null;
-        cameraToCapture.targetTexture = null;
-        renderTexture.Release();
-        Destroy(renderTexture);
-
-        // If you have an existing texture and don't want to keep it in memory, uncomment the following line:
-        Destroy(renderResult);
-    }
-
-
-    public string CaptureCamera(Camera cameraToCapture, int heightReso = 0, int widthReso = 0, float fov = 0, float newXPosition = 0)
-    {
-        // Create a RenderTexture with the same dimensions as the screen
-        RenderTexture renderTexture;
-        if (heightReso == 0)
-        {
-            renderTexture = new RenderTexture(Screen.width, Screen.height, 24);
-        }
-        else if (widthReso == 0)
-        {
-            renderTexture = new RenderTexture(heightReso, heightReso, 24);
-            
-        }
-        else
-        {
-            renderTexture = new RenderTexture(widthReso, heightReso, 24);
-        }
-        
-        cameraToCapture.targetTexture = renderTexture;
-        
-        if (Math.Abs(fov) >= epsilon)
-        {
-            cameraToCapture.fieldOfView = fov;
-        }
-
-         // Change the camera's x position
-        if (Math.Abs(newXPosition) >= epsilon)
-        {
-            Vector3 currentPosition = cameraToCapture.transform.position;
-            cameraToCapture.transform.position = new Vector3(newXPosition, currentPosition.y, currentPosition.z);
-        }
-        
-        // Force camera to render
-        cameraToCapture.Render();
-
-        // Create a new Texture2D with the camera's dimensions
-        Texture2D renderResult = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.ARGB32, false);
-
-        // Set the RenderTexture as the active RenderTexture
-        RenderTexture.active = renderTexture;
-
-        // Read the pixels from the RenderTexture and apply them to the Texture2D
-        renderResult.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
-        renderResult.Apply();
-
-        // Encode the Texture2D to a PNG
-        byte[] byteArray = renderResult.EncodeToPNG();
-
-        // Clean up
-        RenderTexture.active = null;
-        cameraToCapture.targetTexture = null;
-        renderTexture.Release();
-        Destroy(renderTexture);
-        Destroy(renderResult);
-
-        string base64String = Convert.ToBase64String(byteArray);
-
-        return base64String;
     }
     #endregion
 }

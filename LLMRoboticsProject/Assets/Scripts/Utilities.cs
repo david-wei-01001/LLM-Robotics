@@ -1,32 +1,194 @@
-public class Utilities
-{
-    // Direction Prompt
-    public static readonly string LRBarAsk = @"Given the image with a black bar and a red cube, is the black bar on the left or right of the red cube? Please respond with only one word: 'left', or 'right'";
-    public static readonly string FBBarAsk = @"Given the image with a black bar and a red cube, is the black bar on the above or below the red cube? Please respond with only one word: 'above', or 'below'";
-    public static readonly string LRPrompt = @"Given the image with a red object and a green cube, is the red object on the left or right of the green cube? Please respond with only one word: 'left', or 'right'";
-    
-    // Action Prompt
-    public static readonly string actionHeader = @"Given the image with a black bar and a red cube, is the black bar positioned directly ";
-    public static readonly string actionTail = @" the red cube? Only reply with 'yes' or 'no'";
-    public static readonly string PosCheck = @"Given the image with a red cube and a green cube, has the red cube reach the green cube? Respond 'yes' if the red cube touches the green cube, 'no' otherwise. Respond with only one word: 'yes' or 'no'";
-    
+using UnityEngine;
+using System;
+using System.IO;
+using Directions;
 
-    // When red object is a disk
-    public static readonly string LRDiskAsk = @"Given the image with a black bar and a red disk, is the black bar on the left or right of the red disk? Please respond with only one word: 'left', or 'right'";
-    public static readonly string FBDiskAsk = @"Given the image with a black bar and a red disk, is the black bar on the above or below the red disk? Please respond with only one word: 'above', or 'below'";
-    public static readonly string DiskLRPrompt = @"Given the image with a red disk and a green cube, is the red disk on the left or right of the green cube? Please respond with only one word: 'left', or 'right'";
-    
-    public static readonly string DiskactionHeader = @"Given the image with a black bar and a red disk, is the black bar positioned directly ";
-    public static readonly string DiskactionTail = @" the red disk? Only reply with 'yes' or 'no'";
-    public static readonly string DiskPosCheck = @"Given the image with a red disk and a green cube, has the red disk reach the green cube? Respond 'yes' if the red disk is around the green cube, 'no' otherwise. Respond with only one word: 'yes' or 'no'";
-  
-    // When both the red object and the Apperatus base are disks
-    public static readonly string LRDDAsk = @"Given the image with a black onject and a red onject, is the black object on the left or right of the red object? Please respond with only one word: 'left', or 'right'";
-    public static readonly string FBDDAsk = @"Given the image with a black disk and a red disk, is the black disk on the above or below the red disk? Please respond with only one word: 'above', or 'below'";
-    
-    public static readonly string DDactionHeader = @"Given the image with a black disk and a red disk, is the black disk positioned directly ";
-    public static readonly string DDactionUp = @"Given the image with a black object and a red object, is the black object almost horizontally aligned with the red object?";
-    public static readonly string DDPosCheck = @"Given the image with a two disks and a green cube, does one disk reach the green cube? Respond 'yes' if one disk touchs the green cube, 'no' otherwise. Respond with only one word: 'yes' or 'no'";
-  
-    
+public static class Utilities
+{
+    const float epsilon = 0.0001f; // Define a small threshold value
+
+    #region DirectionCode
+    public static string negate(string pos)
+    {
+        if (pos.Contains("left"))
+        {
+            return "right";
+        }
+        else if (pos.Contains("right"))
+        {
+            return "left";
+        }
+        else if (pos.Contains("above"))
+        {
+            return "below";
+        }
+        else
+        {
+            return "above";
+        }
+    }
+
+    public static Dir getDir(string pos)
+    {
+        if (pos.Contains("left"))
+        {
+            return Dir.Right;
+        }
+        else if (pos.Contains("right"))
+        {
+            return Dir.Left;
+        }
+        else if (pos.Contains("above"))
+        {
+            return Dir.Back;
+        }
+        else
+        {
+            return Dir.Forward;
+        }
+    }
+
+    public static Dir negDir(Dir curr)
+    {
+        if (curr == Dir.Left)
+        {
+            return Dir.Right;
+        }
+        else if (curr == Dir.Right)
+        {
+            return Dir.Left;
+        }
+        else if (curr == Dir.Forward)
+        {
+            return Dir.Back;
+        }
+        else
+        {
+            return Dir.Forward;
+        }
+    }
+    #endregion
+
+    #region Camera Driver
+    public static void CaptureAndSave(Camera cameraToCapture, string imagePath, int heightReso = 0, int widthReso = 0, float fov = 0, float newXPosition = 0)
+    {
+        // Create a RenderTexture with the same dimensions as the screen
+        RenderTexture renderTexture;
+        if (heightReso == 0)
+        {
+            renderTexture = new RenderTexture(Screen.width, Screen.height, 24);
+        }
+        else if (widthReso == 0)
+        {
+            renderTexture = new RenderTexture(heightReso, heightReso, 24);
+            
+        }
+        else
+        {
+            renderTexture = new RenderTexture(widthReso, heightReso, 24);
+        }
+        
+        cameraToCapture.targetTexture = renderTexture;
+        
+        if (Math.Abs(fov) >= epsilon)
+        {
+            cameraToCapture.fieldOfView = fov;
+        }
+
+        // Change the camera's x position
+        if (Math.Abs(newXPosition) >= epsilon)
+        {
+            Vector3 currentPosition = cameraToCapture.transform.position;
+            cameraToCapture.transform.position = new Vector3(newXPosition, currentPosition.y, currentPosition.z);
+        }
+
+        // Force camera to render
+        cameraToCapture.Render();
+
+        // Create a new Texture2D with the camera's dimensions
+        Texture2D renderResult = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.ARGB32, false);
+        
+        // Set the RenderTexture as the active RenderTexture
+        RenderTexture.active = renderTexture;
+        
+        // Read the pixels from the RenderTexture and apply them to the Texture2D
+        renderResult.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
+        renderResult.Apply();
+
+        // Encode the Texture2D to a PNG
+        byte[] byteArray = renderResult.EncodeToPNG();
+
+        // Save the PNG to disk
+        string fullPath = Path.Combine(Application.dataPath, imagePath + ".png");
+        File.WriteAllBytes(fullPath, byteArray);
+
+        Debug.Log("Saved Image to " + fullPath);
+
+        // Clean up
+        RenderTexture.active = null;
+        cameraToCapture.targetTexture = null;
+        renderTexture.Release();
+
+        // If you have an existing texture and don't want to keep it in memory, uncomment the following line:
+    }
+
+
+    public static string CaptureCamera(Camera cameraToCapture, int heightReso = 0, int widthReso = 0, float fov = 0, float newXPosition = 0)
+    {
+        // Create a RenderTexture with the same dimensions as the screen
+        RenderTexture renderTexture;
+        if (heightReso == 0)
+        {
+            renderTexture = new RenderTexture(Screen.width, Screen.height, 24);
+        }
+        else if (widthReso == 0)
+        {
+            renderTexture = new RenderTexture(heightReso, heightReso, 24);
+            
+        }
+        else
+        {
+            renderTexture = new RenderTexture(widthReso, heightReso, 24);
+        }
+        
+        cameraToCapture.targetTexture = renderTexture;
+        
+        if (Math.Abs(fov) >= epsilon)
+        {
+            cameraToCapture.fieldOfView = fov;
+        }
+
+        // Change the camera's x position
+        if (Math.Abs(newXPosition) >= epsilon)
+        {
+            Vector3 currentPosition = cameraToCapture.transform.position;
+            cameraToCapture.transform.position = new Vector3(newXPosition, currentPosition.y, currentPosition.z);
+        }
+        
+        // Force camera to render
+        cameraToCapture.Render();
+
+        // Create a new Texture2D with the camera's dimensions
+        Texture2D renderResult = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.ARGB32, false);
+
+        // Set the RenderTexture as the active RenderTexture
+        RenderTexture.active = renderTexture;
+
+        // Read the pixels from the RenderTexture and apply them to the Texture2D
+        renderResult.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
+        renderResult.Apply();
+
+        // Encode the Texture2D to a PNG
+        byte[] byteArray = renderResult.EncodeToPNG();
+
+        // Clean up
+        RenderTexture.active = null;
+        cameraToCapture.targetTexture = null;
+        renderTexture.Release();
+
+        string base64String = Convert.ToBase64String(byteArray);
+
+        return base64String;
+    }
+    #endregion
 }

@@ -13,7 +13,7 @@ namespace Gemini
     {
         #region MyRegion
         protected static HttpClient httpClient;
-        protected static string PROJECT_ID = "enduring-grid-414902";
+        protected static string PROJECT_ID = <Your Project ID>;
         protected static string MODEL_ID = "gemini-1.0-pro-vision";
         protected static string QUERY = "generateContent";
         #endregion
